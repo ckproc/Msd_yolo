@@ -1,0 +1,19 @@
+# coco training config
+--mode=resume
+--dataset=coco
+--basenet=InceptionV2
+--checkpoint_path=model/inception-v2/inception_v2.ckpt
+--train_file=data/coco_train_val_lmdb
+--train_dir=backup/coco-dilation-aug-ems-final-512-3
+--input_row=512
+--input_col=512
+--output_row=16
+--output_col=16
+--num_class=80
+--batch_size=50
+--gpu_list=0, 1
+--gpu_usage=0.96
+--max_steps=240000
+--lr_policy=piecewise_constant
+--step_value=400, 220000
+--step_lr=0.001, 0.005, 0.0005

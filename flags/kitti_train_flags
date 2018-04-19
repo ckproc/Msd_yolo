@@ -1,0 +1,19 @@
+# kitti training config
+--mode=train
+--dataset=kitti
+--basenet=InceptionV2
+--checkpoint_path=model/inception-v2/inception_v2.ckpt
+--train_file=data/kitti_train_lmdb
+--train_dir=backup/kitti-dilation-aug-ems-final
+--input_row=384
+--input_col=1248
+--output_row=12
+--output_col=39
+--num_class=3
+--batch_size=20
+--gpu_list=0, 1
+--gpu_usage=0.8
+--max_steps=80000
+--lr_policy=piecewise_constant
+--step_value=200, 50000, 65000
+--step_lr=0.001, 0.005, 0.0005, 0.00005

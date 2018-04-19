@@ -1,0 +1,11 @@
+# coco evalution config
+--dataset=coco
+--basenet=InceptionV2
+--eval_file=data/coco_test_dev_2015_0_lmdb
+--input_row=512
+--input_col=512
+--output_row=16
+--output_col=16
+--num_class=80
+--gpu_list=1
+--gpu_usage=0.96

@@ -1,0 +1,19 @@
+# pascal voc training config
+--mode=train
+--dataset=pascal_voc
+--basenet=Msdnet
+--checkpoint_path=model/inception-v2/inception_v2.ckpt
+--train_file=/home/ckp/data/PASCAL/VOCdevkit/VOC0712/train_val_lmdb
+--train_dir=backup/voc-dilation-aug-ems-final-448
+--input_row=448
+--input_col=448
+--output_row=14
+--output_col=14
+--num_class=20
+--batch_size=32
+--gpu_list=0
+--gpu_usage=0.8
+--max_steps=80000
+--lr_policy=piecewise_constant
+--step_value=200
+--step_lr=0.001,0.005

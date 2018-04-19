@@ -1,0 +1,11 @@
+# pascal voc evalution config
+--dataset=pascal_voc
+--basenet=Msdnet
+--eval_file=/home/ckp/data/PASCAL/testdata_lmdb
+--input_row=448
+--input_col=448
+--output_row=14
+--output_col=14
+--num_class=20
+--gpu_list=0
+--gpu_usage=0.4

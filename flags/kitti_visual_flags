@@ -1,0 +1,13 @@
+# kitti visual config
+--dataset=kitti
+--basenet=InceptionV2
+--checkpoint_path=backup/kitti-dilation-aug-ems-final/model.ckpt-80000
+--eval_file=data/kitti_val_lmdb
+--eval_dir=visual
+--input_row=384
+--input_col=1248
+--output_row=12
+--output_col=39
+--num_class=3
+--gpu_list=1
+--gpu_usage=0.4

@@ -1,0 +1,13 @@
+# pascal voc visual config
+--dataset=pascal_voc
+--basenet=InceptionV2
+--checkpoint_path=backup/output-14-dilation-aug-ems-final-640/model.ckpt-30000
+--eval_file=data/pascal_voc_test_2007_lmdb
+--eval_dir=visual
+--input_row=640
+--input_col=640
+--output_row=20
+--output_col=20
+--num_class=20
+--gpu_list=1
+--gpu_usage=0.4
