@@ -26,9 +26,9 @@ gflags.DEFINE_enum('basenet', 'Msdnet', ['InceptionV2', 'InceptionV3', 'Inceptio
  
 def inference(images, channels,is_training=False, scope=None):
     with tf.name_scope(scope, 'tower', [images]):
-        with slim.arg_scope(basenet_arg_scope(FLAGS.basenet)):
+        with slim.arg_scope(basenet_arg_scope('Msdnet')):
             with slim.arg_scope([slim.batch_norm, slim.dropout], is_training=is_training):
-                net, end_points = basenet(images, FLAGS.basenet)
+                net, end_points = basenet(images, 'Msdnet')
                 print (net)
                 #net = slim.conv2d(net, 1536, 1, stride=1,padding='SAME', scope='final_conv1')
                 #net = slim.conv2d(net, 1536, 3, stride=1,padding='SAME', scope='final_conv2')

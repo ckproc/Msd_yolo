@@ -6,18 +6,19 @@ import tensorflow as tf
 import math
 slim = tf.contrib.slim
 class param(object):
-    nScales = 3
+    nScales = 4
     reduction =0.5
     base = 4
-    nBlocks = 10
+    nBlocks = 5
     stepmode = 'even'
-    step = 2
+    step = 4
     bottleneck = True
     grFactor = [1,2,4,4]
     prune = 'max'
     bnFactor = [1,2,4,4]
     initChannels=32
-    growthRate=6
+    growthRate=16
+    dataset='imagenet'
     
 def build(input, nChannels, nOutChannels, type, bottleneck, bnWidth):
     innerChannels = nChannels
@@ -26,13 +27,13 @@ def build(input, nChannels, nOutChannels, type, bottleneck, bnWidth):
     with tf.variable_scope(type):
         if bottleneck:
           innerChannels = min(innerChannels, bnWidth * nOutChannels)
-          input = slim.conv2d(input, innerChannels, 1, stride=1, padding='VALID',normalizer_fn =slim.batch_norm, scope='conv_bottleneck');
+          input = slim.conv2d(input, innerChannels, 1, stride=1, padding='VALID',normalizer_fn =slim.batch_norm, scope='convbottleneck');
         if type == 'normal':
-          output = slim.conv2d(input, nOutChannels, 3,stride=1,padding='SAME',normalizer_fn =slim.batch_norm,scope = 'conv_normal')
+          output = slim.conv2d(input, nOutChannels, 3,stride=1,padding='SAME',normalizer_fn =slim.batch_norm,scope = 'convnormal')
         elif type == 'down':
-          output = slim.conv2d(input, nOutChannels, 3,stride=2,padding='SAME',normalizer_fn =slim.batch_norm,scope = 'conv_dowm')
+          output = slim.conv2d(input, nOutChannels, 3,stride=2,padding='SAME',normalizer_fn =slim.batch_norm,scope = 'convdowm')
         elif type == 'up':
-          output = slim.conv2d_transpose(input, nOutChannels, 3,stride=2,padding='SAME',normalizer_fn =slim.batch_norm,scope = 'conv_up')
+          output = slim.conv2d_transpose(input, nOutChannels, 3,stride=2,padding='SAME',normalizer_fn =slim.batch_norm,scope = 'convup')
     
     return output
     
@@ -67,8 +68,11 @@ def MSDNet_Layer_first(input, Cins, Couts, args):
     for i in range(args.nScales):
         with tf.variable_scope("scale%d" %i):
           if(i==0):
-            output_s = slim.conv2d(input, Couts*args.grFactor[0], 3, stride=1, padding='SAME', normalizer_fn =slim.batch_norm, scope='conv1')
-            
+            if args.dataset == 'cifar10':
+              output_s = slim.conv2d(input, Couts*args.grFactor[0], 3, stride=1, padding='SAME', normalizer_fn =slim.batch_norm, scope='conv1')
+            else:
+              output_s = slim.conv2d(input, Couts*args.grFactor[0], 7, stride=2, padding='SAME', normalizer_fn =slim.batch_norm, scope='conv1')
+              output_s = slim.max_pool2d(output_s, 3, stride=2, padding = 'SAME', scope='max_pooling')
           else:
             output_s = slim.conv2d(output_s, Couts*args.grFactor[i], 3, stride=2, padding='SAME', normalizer_fn =slim.batch_norm, scope='conv1')
           output.append(output_s)
@@ -139,8 +143,8 @@ def build_block(input, inChannels, args, step, layer_all, layer_curr,blockname):
             #print ('outScales',outScales)
           inScales = int(inScales)
           outScales = int(outScales)
-          #print('|', 'inScales ', inScales, 'outScales ', outScales , '|') 
-          with tf.variable_scope('step_%d' %i):
+          print('|', 'inScales ', inScales, 'outScales ', outScales , '|') 
+          with tf.variable_scope('step%d' %i):
             #print (len(input))
             input = MSDNet_Layer(input,nIn,args.growthRate,args,inScales,outScales)
             #print (blockname,"shape",input)
@@ -164,9 +168,9 @@ def build_detector_pascal(input, inChannels, scopename,args):
     #interChannels1, interChannels2 = 128, 128
     with tf.variable_scope(scopename):
       #with slim.arg_scope([slim.conv2d],normalizer_fn=None, normalizer_params=None):
-        output = slim.conv2d(input, inChannels, 3, stride=1,padding='SAME', scope='conv1')
+        output = slim.conv2d(input, inChannels, 3, stride=2,padding='SAME', scope='conv1')
         output = slim.conv2d(output, inChannels, 3, stride=2,padding='SAME', scope='conv2')
-        output = slim.conv2d(output, inChannels, 3, stride=1,padding='SAME', scope='conv3')
+        #output = slim.conv2d(output, inChannels, 3, stride=1,padding='SAME', scope='conv3')
         #output = slim.conv2d(output, inChannels, 3, stride=1,padding='SAME', scope='conv3',activation_fn=None)
         #dets = slim.conv2d(output, final_channels, 1, stride=1,padding='SAME', scope='conv4')
     return output#[batch,14,14,final_channels]
@@ -174,19 +178,34 @@ def build_detector_pascal(input, inChannels, scopename,args):
 
  
 def Msdnet_base(inputs,scope=None):
+    '''   
+    nScales = 4
+    reduction =0.5
+    base = 4
+    nBlocks = 5
+    stepmode = 'even'
+    step = 4
+    bottleneck = True
+    grFactor = [1,2,4,4]
+    prune = 'max'
+    bnFactor = [1,2,4,4]
+    initChannels=32
+    growthRate=16
+    dataset='imagenet'
+    '''
     args = param()
     end_points = {}
-    nChannels = 32
-    nblocks = 10
+    nChannels = args.initChannels
+    nblocks = args.nBlocks
     nIn = nChannels
     layer_curr = 0
-    layer_all = 4
+    layer_all = args.base
     steps=[0]*nblocks
-    steps[0]=4
+    steps[0]=args.base
     outputs=[]
     for i in range(1,nblocks):
      if True:
-       steps[i]=2
+       steps[i]=args.step
      else :
        pass
      layer_all= layer_all+steps[i]
@@ -208,21 +227,21 @@ def Msdnet_base(inputs,scope=None):
        #                 normalizer_fn=slim.batch_norm,
        #                 normalizer_params=batch_norm_params):
         #with slim.arg_scope([slim.batch_norm, slim.dropout],is_training=True):
-            inputs = slim.conv2d(inputs, nChannels, 7, stride=2,padding='SAME', scope='conv_7x7')
-            inputs = slim.max_pool2d(inputs,2,stride=2,padding = 'SAME',scope='max_pooling')
-            print (inputs)
+            #inputs = slim.conv2d(inputs, nChannels, 7, stride=2,padding='SAME', scope='conv_7x7')
+            
+            #print (inputs)
             for i in range(nblocks):
-                blockname = 'b_'+str(i)
+                blockname = 'b'+str(i)
                 if layer_curr==0:
                     net,nIn = build_block(inputs,nIn,args,steps[i],layer_all,layer_curr,blockname)
                 else:
                     net,nIn = build_block(net,nIn,args,steps[i],layer_all,layer_curr,blockname)
                 layer_curr = layer_curr + steps[i]
-            detectname='detector_'+str(10)
-            dets = build_detector_pascal(net[-1],nIn*args.grFactor[args.nScales] , detectname,args)
+            #detectname='detector_'+str(10)
+            #dets = build_detector_pascal(net[-1],nIn*args.grFactor[args.nScales] , detectname,args)
                 #outputs.append(dets)
             
-    print (outputs)
-    return dets,end_points
+    print (net[-1])
+    return net[-1],end_points
         
     

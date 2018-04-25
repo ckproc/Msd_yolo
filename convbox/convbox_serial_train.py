@@ -48,26 +48,29 @@ def configure_solver(global_step):
         boundaries = [int(i) for i in FLAGS.step_value.split(',')]
         values = [float(i) for i in FLAGS.step_lr.split(',')]
         lr = tf.train.piecewise_constant(global_step, boundaries, values)
+        #lr = tf.train.exponential_decay(0.001,global_step,10000,0.5,staircase=True)
     else:
         raise ValueError('Lr_policy [%s] was not recognized.', FLAGS.lr_policy)
 
     # Create an optimizer that performs gradient descent.
     if FLAGS.optimizer == 'SGD':
-        opt = tf.train.GradientDescentOptimizer(lr)
-        #opt = tf.train.MomentumOptimizer(lr, momentum=0.9, use_nesterov = True)
+        #opt = tf.train.GradientDescentOptimizer(lr)
+        opt = tf.train.MomentumOptimizer(lr, momentum=0.9, use_nesterov = True)
     elif FLAGS.optimizer == 'RMS':
         print ('RMS::')
         opt = tf.train.RMSPropOptimizer(lr, decay=0.9, momentum=0.9, epsilon=1.0)
     elif FLAGS.optimizer == 'ADAM':
-        opt = tf.train.AdamOptimizer(lr, beta1=0.9, beta2=0.999, epsilon=1e-4)
+        opt = tf.train.AdamOptimizer(lr, beta1=0.9, beta2=0.999, epsilon=1e-8)
     else:
         raise ValueError('Optimizer [%s] was not recognized.', FLAGS.optimizer)
     return opt, lr
 
 def model_init(sess):
     if FLAGS.mode == 'train':
-        assert tf.gfile.Exists(FLAGS.checkpoint_path)
+        #assert tf.gfile.Exists(FLAGS.checkpoint_path)
         variables_to_restore = slim.get_model_variables(scope=FLAGS.basenet)
+        #variables_to_restore = slim.get_model_variables()
+        #print (variables_to_restore)
         restorer = tf.train.Saver(variables_to_restore)
         restorer.restore(sess, FLAGS.checkpoint_path)
         print '%s: Pre-trained model restored from %s.' %(
@@ -202,7 +205,7 @@ def train():
 
         sess.run(init)
         # load pretrained model or resume model.
-        #model_init(sess)
+        model_init(sess)
 
         summary_writer = tf.summary.FileWriter(FLAGS.train_dir, sess.graph)
         #print ("ssss")
@@ -258,7 +261,7 @@ def train():
                 summary_writer.add_summary(summary_str, step)
 
             # Save the model checkpoint periodically.
-            if step % 2000 == 0 or step == FLAGS.max_steps:
+            if step % 4000 == 0 or step == FLAGS.max_steps:
                 checkpoint_path = os.path.join(FLAGS.train_dir, 'model.ckpt')
                 saver.save(sess, checkpoint_path, global_step=step)
                 if step == FLAGS.max_steps:
